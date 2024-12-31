@@ -55,8 +55,8 @@ local tabGroups = {
 }
 
 local tabs = {
-	Main = tabGroups.TabGroup1:Tab({ Name = "silent aim", Image = "rbxassetid://18821914323" }),
-	Main2 = tabGroups.TabGroup1:Tab({ Name = "camlock and target stafe😡", Image = "" })
+	Main = tabGroups.TabGroup1:Tab({ Name = "section1", Image = "rbxassetid://18821914323" }),
+	Main2 = tabGroups.TabGroup1:Tab({ Name = "section2", Image = "" })
 	
 }
 
