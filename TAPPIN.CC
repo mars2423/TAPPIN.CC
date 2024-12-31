@@ -860,6 +860,105 @@ end)
 	end,
 })
 
+sections.MainSection1:Toggle({
+	Name = "esp (toggle dont work)",
+	Default = true,
+	Callback = function(value)
+		Window:Notify({
+			Title = Window.Settings.Title,
+			Description = (value and "Enabled " or "Disabled ") .. "Toggle"
+		})
+	end,
+}, "Toggle")
+
+local players = game:GetService("Players")
+local runService = game:GetService("RunService")
+local localPlayer = players.LocalPlayer
+
+-- Tables to store ESP elements
+local espElements = {}
+
+-- Function to create ESP elements for a player
+local function createESP(player)
+    local box = Drawing.new("Square")
+    box.Visible = false
+    box.Color = Color3.fromRGB(255, 0, 0) -- Box color (red)
+    box.Thickness = 2
+    box.Transparency = 1
+
+    local nameTag = Drawing.new("Text")
+    nameTag.Visible = false
+    nameTag.Color = Color3.fromRGB(255, 255, 255) -- Text color (white)
+    nameTag.Size = 22  -- Increased font size for names
+    nameTag.Center = true
+    nameTag.Outline = true
+    nameTag.Font = Drawing.Fonts.UI
+
+    espElements[player] = {box = box, nameTag = nameTag}
+end
+
+-- Function to remove ESP elements for a player
+local function removeESP(player)
+    if espElements[player] then
+        espElements[player].box:Remove()
+        espElements[player].nameTag:Remove()
+        espElements[player] = nil
+    end
+end
+
+-- Update ESP for all players
+local function updateESP()
+    for player, elements in pairs(espElements) do
+        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local character = player.Character
+            local humanoidRootPart = character.HumanoidRootPart
+
+            local screenPosition, onScreen = workspace.CurrentCamera:WorldToViewportPoint(humanoidRootPart.Position)
+
+            if onScreen then
+                -- Update box position and visibility
+                elements.box.Size = Vector2.new(30, 30)  -- Smaller size for the box
+                elements.box.Position = Vector2.new(screenPosition.X - elements.box.Size.X / 2, screenPosition.Y - elements.box.Size.Y / 2)
+                elements.box.Visible = true
+
+                -- Update name tag position and visibility
+                elements.nameTag.Position = Vector2.new(screenPosition.X, screenPosition.Y - elements.box.Size.Y / 2 - 25)  -- Adjusted name position
+                elements.nameTag.Text = player.DisplayName
+                elements.nameTag.Visible = true
+            else
+                elements.box.Visible = false
+                elements.nameTag.Visible = false
+            end
+        else
+            elements.box.Visible = false
+            elements.nameTag.Visible = false
+        end
+    end
+end
+
+-- Add ESP for new players
+players.PlayerAdded:Connect(function(player)
+    createESP(player)
+    player.CharacterAdded:Connect(function()
+        createESP(player)
+    end)
+end)
+
+-- Remove ESP for players who leave
+players.PlayerRemoving:Connect(function(player)
+    removeESP(player)
+end)
+
+-- Initialize ESP for existing players
+for _, player in ipairs(players:GetPlayers()) do
+    if player ~= localPlayer then
+        createESP(player)
+    end
+end
+
+-- Update ESP elements every frame
+runService.RenderStepped:Connect(updateESP)
+
 
 Window.onUnloaded(function()
 	print("Unloaded!")
