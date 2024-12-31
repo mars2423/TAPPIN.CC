@@ -808,6 +808,59 @@ end)
 })
 
 
+sections.MainSection1:Button({
+	Name = "speed cannot stop",
+	Callback = function()
+		Window:Dialog({
+			Title = Window.Settings.Title,
+			Description = "speed",
+			Buttons = {
+				{
+					Name = "Confirm",
+					Callback = function()
+						local localPlayer = game:GetService("Players").LocalPlayer
+local uis = game:GetService("UserInputService")
+local isRunning = false -- Tracks if the player is in "speed mode"
+local multiplier = 1 -- Speed multiplier
+
+-- Show a temporary hint
+task.spawn(function()
+    local hint = Instance.new("Hint", workspace)
+    hint.Text = "Speed made by Mars"
+    task.wait(1)
+    hint:Destroy()
+end)
+
+-- Toggle speed mode on or off when F is pressed
+uis.InputBegan:Connect(function(i, gp)
+    if gp then return end -- Ignore inputs processed by the game
+
+    if i.KeyCode == Enum.KeyCode.F then
+        isRunning = not isRunning -- Toggle the running state
+        if isRunning then
+            -- Start moving the player continuously
+            while isRunning do
+                task.wait()
+                local humanoidRootPart = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if humanoidRootPart then
+                    humanoidRootPart.CFrame = humanoidRootPart.CFrame + humanoidRootPart.CFrame.LookVector * multiplier
+                end
+            end
+        end
+    end
+end)
+
+					end,
+				},
+				{
+					Name = "Cancel"
+				}
+			}
+		})
+	end,
+})
+
+
 Window.onUnloaded(function()
 	print("Unloaded!")
 end)
