@@ -861,7 +861,7 @@ end)
 })
 
 sections.MainSection1:Toggle({
-	Name = "esp (toggle dont work)",
+	Name = "esp (rejoin after a while)  ",
 	Default = true,
 	Callback = function(value)
 		Window:Notify({
@@ -959,6 +959,32 @@ end
 -- Update ESP elements every frame
 runService.RenderStepped:Connect(updateESP)
 
+sections.MainSection1:Button({
+	Name = "rejoin",
+	Callback = function()
+		Window:Dialog({
+			Title = Window.Settings.Title,
+			Description = "are u sure u want to rejoin?",
+			Buttons = {
+				{
+					Name = "Confirm",
+					Callback = function()
+						local ts = game:GetService("TeleportService")
+
+local p = game:GetService("Players").LocalPlayer
+
+ 
+
+ts:Teleport(game.PlaceId, p)
+					end,
+				},
+				{
+					Name = "Cancel"
+				}
+			}
+		})
+	end,
+})
 
 Window.onUnloaded(function()
 	print("Unloaded!")
