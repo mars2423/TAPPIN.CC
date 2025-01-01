@@ -820,7 +820,7 @@ sections.MainSection1:Button({
 					Callback = function()
 						local localPlayer = game:GetService("Players").LocalPlayer
 local uis = game:GetService("UserInputService")
-local isRunning = false -- Tracks if the player is in "speed mode"
+local isRunning = true -- Tracks if the player is in "speed mode"
 local multiplier = 1 -- Speed multiplier
 
 -- Show a temporary hint
@@ -986,9 +986,134 @@ ts:Teleport(game.PlaceId, p)
 	end,
 })
 
+
+
 Window.onUnloaded(function()
 	print("Unloaded!")
 end)
 
 tabs.Main:Select()
 MacLib:LoadAutoLoadConfig()
+
+sections.MainSection1:Toggle({
+	Name = "walkspeed",
+	Default = false,
+	Callback = function(value)
+		Window:Notify({
+			Title = Window.Settings.Title,
+			Description = (value and "Enabled " or "Disabled ") .. "Toggle"
+		})
+	end,
+}, "Toggle")
+
+sections.MainSection1:Slider({
+	Name = "speed",
+	Default = 50,
+	Minimum = 0,
+	Maximum = 200,
+	DisplayMethod = "speed",
+	Precision = 0,
+	Callback = function(Value)
+		print("Changed to ".. Value)
+	end
+}, "Slider")
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+-- Initialize variables
+local lastPosition = nil
+local lastTime = nil
+local isSpeedEnabled = false
+local Multiplier = 1  -- Default speed multiplier
+
+-- Function to calculate and apply CFrame speed
+local function calculateCFrameSpeed()
+    local character = Players.LocalPlayer.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    
+    lastPosition = character.HumanoidRootPart.Position
+    lastTime = tick()
+
+    -- Update speed every frame
+    RunService.Heartbeat:Connect(function()
+        if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+        local currentPosition = character.HumanoidRootPart.Position
+        local currentTime = tick()
+        
+        -- Calculate the distance traveled
+        local distance = (currentPosition - lastPosition).Magnitude
+        local timeDelta = currentTime - lastTime
+        
+        -- Calculate the speed (distance / time)
+        local speed = distance / timeDelta
+
+        -- Print the calculated speed in studs per second
+        print("CFrame Speed: " .. speed .. " studs per second")
+        
+        -- Update the last known position and time for the next frame
+        lastPosition = currentPosition
+        lastTime = currentTime
+
+        -- Apply speed to the character's movement (based on multiplier)
+        if isSpeedEnabled then
+            character.HumanoidRootPart.CFrame = character.HumanoidRootPart.CFrame + character.Humanoid.MoveDirection * Multiplier
+        end
+    end)
+end
+
+-- Listen for key input (F key) to toggle speed on/off
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode.F then
+        -- Toggle speed on/off
+        isSpeedEnabled = not isSpeedEnabled
+        if isSpeedEnabled then
+            -- Start calculating CFrame speed
+            print("Speed enabled! Multiplier set to: " .. Multiplier)
+            calculateCFrameSpeed()
+        else
+            -- Stop the speed when 'F' is released
+            print("Speed disabled!")
+        end
+    end
+end)
+
+-- Function to set the speed multiplier manually (you can also use this with a slider)
+function setSpeed(value)
+    Multiplier = value
+    print("Speed multiplier set to: " .. Multiplier)
+end
+
+-- Slider setup (for GUI or testing purposes)
+-- Here we simulate the slider using setSpeed function.
+-- You can use this in a GUI library like Kavo or a custom GUI for slider functionality.
+local function createSpeedSlider()
+    local slider = Instance.new("Frame")
+    slider.Size = UDim2.new(0, 200, 0, 50)
+    slider.Position = UDim2.new(0.5, -100, 0.5, -25)
+    slider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    slider.Parent = game.Players.LocalPlayer.PlayerGui:WaitForChild("ScreenGui") -- Adjust if necessary
+    
+    local speedValue = Instance.new("TextLabel")
+    speedValue.Size = UDim2.new(1, 0, 0.5, 0)
+    speedValue.Position = UDim2.new(0, 0, 0.5, 0)
+    speedValue.Text = "Speed: " .. Multiplier
+    speedValue.TextColor3 = Color3.fromRGB(0, 0, 0)
+    speedValue.Parent = slider
+
+    -- Update slider value dynamically
+    local speedSlider = Instance.new("Slider") -- You can use an actual GUI library slider here
+    speedSlider.MinValue = 0
+    speedSlider.MaxValue = 10
+    speedSlider.ValueChanged:Connect(function(value)
+        setSpeed(value)
+        speedValue.Text = "Speed: " .. value
+    end)
+    speedSlider.Parent = slider
+end
+
+createSpeedSlider()
+
