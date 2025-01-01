@@ -995,30 +995,17 @@ end)
 tabs.Main:Select()
 MacLib:LoadAutoLoadConfig()
 
-sections.MainSection1:Toggle({
-	Name = "walkspeed",
-	Default = false,
-	Callback = function(value)
-		Window:Notify({
+sections.MainSection1:Button({
+	Name = "cframe speed (f)",
+	Callback = function()
+		Window:Dialog({
 			Title = Window.Settings.Title,
-			Description = (value and "Enabled " or "Disabled ") .. "Toggle"
-		})
-	end,
-}, "Toggle")
-
-sections.MainSection1:Slider({
-	Name = "speed",
-	Default = 50,
-	Minimum = 0,
-	Maximum = 200,
-	DisplayMethod = "speed",
-	Precision = 0,
-	Callback = function(Value)
-		print("Changed to ".. Value)
-	end
-}, "Slider")
-
-local Players = game:GetService("Players")
+			Description = "op asf",
+			Buttons = {
+				{
+					Name = "Confirm",
+					Callback = function()
+						local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -1026,7 +1013,7 @@ local UserInputService = game:GetService("UserInputService")
 local lastPosition = nil
 local lastTime = nil
 local isSpeedEnabled = false
-local Multiplier = 1  -- Default speed multiplier
+local Multiplier = 0.5  -- Lower value for slower speed (e.g., 0.5)
 
 -- Function to calculate and apply CFrame speed
 local function calculateCFrameSpeed()
@@ -1063,7 +1050,7 @@ local function calculateCFrameSpeed()
     end)
 end
 
--- Listen for key input (F key) to toggle speed on/off
+-- Listen for key input (F key)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     
@@ -1081,39 +1068,143 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- Function to set the speed multiplier manually (you can also use this with a slider)
+-- Function to set the speed multiplier manually
 function setSpeed(value)
     Multiplier = value
     print("Speed multiplier set to: " .. Multiplier)
 end
 
--- Slider setup (for GUI or testing purposes)
--- Here we simulate the slider using setSpeed function.
--- You can use this in a GUI library like Kavo or a custom GUI for slider functionality.
-local function createSpeedSlider()
-    local slider = Instance.new("Frame")
-    slider.Size = UDim2.new(0, 200, 0, 50)
-    slider.Position = UDim2.new(0.5, -100, 0.5, -25)
-    slider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    slider.Parent = game.Players.LocalPlayer.PlayerGui:WaitForChild("ScreenGui") -- Adjust if necessary
-    
-    local speedValue = Instance.new("TextLabel")
-    speedValue.Size = UDim2.new(1, 0, 0.5, 0)
-    speedValue.Position = UDim2.new(0, 0, 0.5, 0)
-    speedValue.Text = "Speed: " .. Multiplier
-    speedValue.TextColor3 = Color3.fromRGB(0, 0, 0)
-    speedValue.Parent = slider
+-- Example usage: Change the speed multiplier directly (You can call this function anywhere in the script)
+setSpeed(0.5)  -- Set speed multiplier to 0.5 for slower speed
 
-    -- Update slider value dynamically
-    local speedSlider = Instance.new("Slider") -- You can use an actual GUI library slider here
-    speedSlider.MinValue = 0
-    speedSlider.MaxValue = 10
-    speedSlider.ValueChanged:Connect(function(value)
-        setSpeed(value)
-        speedValue.Text = "Speed: " .. value
-    end)
-    speedSlider.Parent = slider
+					end,
+				},
+				{
+					Name = "Cancel"
+				}
+			}
+		})
+	end,
+})
+
+
+sections.MainSection1:Slider({
+	Name = "fly inverted controls",
+	Default = 50,
+	Minimum = 0,
+	Maximum = 100,
+	DisplayMethod = "speed",
+	Precision = 0,
+	Callback = function(Value)
+		-- Fly Script - Press X to toggle fly, adjust speed with "[" and "]"
+
+local player = game.Players.LocalPlayer
+local mouse = player:GetMouse()
+
+if workspace:FindFirstChild("FlyCore") then
+    workspace.FlyCore:Destroy()
 end
 
-createSpeedSlider()
+-- Create a core part for flying
+local FlyCore = Instance.new("Part")
+FlyCore.Name = "FlyCore"
+FlyCore.Size = Vector3.new(0.05, 0.05, 0.05)
+FlyCore.Parent = workspace
+FlyCore.Anchored = false
+FlyCore.CanCollide = false
 
+local weld = Instance.new("Weld", FlyCore)
+weld.Part0 = FlyCore
+weld.Part1 = player.Character:WaitForChild("LowerTorso")
+weld.C0 = CFrame.new(0, 0, 0)
+
+local isFlying = false
+local speed = (Value)
+local maxSpeed = (Value)
+local minSpeed = (Value)
+local keys = { W = false, A = false, S = false, D = false }
+
+local function toggleFly(state)
+    local character = player.Character
+    if not character then return end
+
+    local bodyGyro = FlyCore:FindFirstChild("BodyGyro") or Instance.new("BodyGyro", FlyCore)
+    local bodyPosition = FlyCore:FindFirstChild("BodyPosition") or Instance.new("BodyPosition", FlyCore)
+
+    bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+    bodyGyro.P = 1e5
+    bodyPosition.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+    bodyPosition.P = 1e5
+
+    if state then
+        isFlying = true
+        character.Humanoid.PlatformStand = true
+
+        -- Fly loop
+        game:GetService("RunService").Heartbeat:Connect(function()
+            if not isFlying then return end
+
+            local moveDir = Vector3.new(
+                (keys.D and 1 or  0) - (keys.A and 1 or 0),
+                0,
+                (keys.W and -1 or 0) + (keys.S and 1 or 0)
+            )
+
+            local camera = workspace.CurrentCamera
+            local moveVector = (camera.CFrame.RightVector * moveDir.X + camera.CFrame.LookVector * moveDir.Z).Unit
+
+            if moveVector.Magnitude > 0 then
+                bodyPosition.Position = FlyCore.Position + moveVector * speed
+            else
+                bodyPosition.Position = FlyCore.Position
+            end
+
+            bodyGyro.CFrame = camera.CFrame
+        end)
+    else
+        isFlying = false
+        bodyGyro:Destroy()
+        bodyPosition:Destroy()
+        character.Humanoid.PlatformStand = false
+    end
+end
+
+-- Keybinds
+mouse.KeyDown:Connect(function(key)
+    key = key:upper()
+
+    if key == "W" then
+        keys.W = true
+    elseif key == "A" then
+        keys.A = true
+    elseif key == "S" then
+        keys.S = true
+    elseif key == "D" then
+        keys.D = true
+    elseif key == "X" then
+        toggleFly(not isFlying)
+    elseif key == "[" then
+        speed = math.max(speed - 1, minSpeed)
+        print("Speed decreased to:", speed)
+    elseif key == "]" then
+        speed = math.min(speed + 1, maxSpeed)
+        print("Speed increased to:", speed)
+    end
+end)
+
+mouse.KeyUp:Connect(function(key)
+    key = key:upper()
+
+    if key == "W" then
+        keys.W = false
+    elseif key == "A" then
+        keys.A = false
+    elseif key == "S" then
+        keys.S = false
+    elseif key == "D" then
+        keys.D = false
+    end
+end)
+
+	end
+}, "Slider")
