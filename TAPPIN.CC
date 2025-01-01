@@ -55,14 +55,17 @@ local tabGroups = {
 }
 
 local tabs = {
-	Main = tabGroups.TabGroup1:Tab({ Name = "section1", Image = "rbxassetid://18821914323" }),
-	Main2 = tabGroups.TabGroup1:Tab({ Name = "section2", Image = "" })
-	
+	Main = tabGroups.TabGroup1:Tab({ Name = "silent aim", Image = "rbxassetid://18821914323" }),
+	Main2 = tabGroups.TabGroup1:Tab({ Name = "camlock", Image = "rbxassetid://10709789686" }),
+	Visual = tabGroups.TabGroup1:Tab({ Name = "visual", Image = "rbxassetid://10723346871" }),
+	Player = tabGroups.TabGroup1:Tab({ Name = "player", Image = "rbxassetid://10747373426" }),
 }
 
 local sections = {
 	MainSection1 = tabs.Main:Section({ Side = "Left" }),
 	Main2 = tabs.Main2:Section({ Side = "Left" }),
+	Playersect1 = tabs.Player:Section({ Side = "Left" }),
+	Visualsect1 = tabs.Visual:Section({ Side = "Left" }),
 }
 
 sections.MainSection1:Header({
@@ -71,6 +74,10 @@ sections.MainSection1:Header({
 
 sections.Main2:Header({
 	Name = "camlock🤡"
+})
+
+sections.Visualsect1:Header({
+	Name = "ESP"
 })
 
 sections.MainSection1:Button({
@@ -687,7 +694,7 @@ end)
 	end,
 })
 
-sections.Main2:Button({
+sections.Playersect1:Button({
 	Name = "😎Target strafe (z) 😎",
 	Callback = function()
 		Window:Dialog({
@@ -808,186 +815,6 @@ end)
 })
 
 
-sections.MainSection1:Button({
-	Name = "speed cannot stop",
-	Callback = function()
-		Window:Dialog({
-			Title = Window.Settings.Title,
-			Description = "speed",
-			Buttons = {
-				{
-					Name = "Confirm",
-					Callback = function()
-						local localPlayer = game:GetService("Players").LocalPlayer
-local uis = game:GetService("UserInputService")
-local isRunning = true -- Tracks if the player is in "speed mode"
-local multiplier = 1 -- Speed multiplier
-
--- Show a temporary hint
-task.spawn(function()
-    local hint = Instance.new("Hint", workspace)
-    hint.Text = "Speed made by Mars"
-    task.wait(1)
-    hint:Destroy()
-end)
-
--- Toggle speed mode on or off when F is pressed
-uis.InputBegan:Connect(function(i, gp)
-    if gp then return end -- Ignore inputs processed by the game
-
-    if i.KeyCode == Enum.KeyCode.F then
-        isRunning = not isRunning -- Toggle the running state
-        if isRunning then
-            -- Start moving the player continuously
-            while isRunning do
-                task.wait()
-                local humanoidRootPart = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
-                if humanoidRootPart then
-                    humanoidRootPart.CFrame = humanoidRootPart.CFrame + humanoidRootPart.CFrame.LookVector * multiplier
-                end
-            end
-        end
-    end
-end)
-
-					end,
-				},
-				{
-					Name = "Cancel"
-				}
-			}
-		})
-	end,
-})
-
-sections.MainSection1:Toggle({
-	Name = "esp (rejoin after a while)  ",
-	Default = true,
-	Callback = function(value)
-		Window:Notify({
-			Title = Window.Settings.Title,
-			Description = (value and "Enabled " or "Disabled ") .. "Toggle"
-		})
-	end,
-}, "Toggle")
-
-local players = game:GetService("Players")
-local runService = game:GetService("RunService")
-local localPlayer = players.LocalPlayer
-
--- Tables to store ESP elements
-local espElements = {}
-
--- Function to create ESP elements for a player
-local function createESP(player)
-    local box = Drawing.new("Square")
-    box.Visible = false
-    box.Color = Color3.fromRGB(255, 0, 0) -- Box color (red)
-    box.Thickness = 2
-    box.Transparency = 1
-
-    local nameTag = Drawing.new("Text")
-    nameTag.Visible = false
-    nameTag.Color = Color3.fromRGB(255, 255, 255) -- Text color (white)
-    nameTag.Size = 22  -- Increased font size for names
-    nameTag.Center = true
-    nameTag.Outline = true
-    nameTag.Font = Drawing.Fonts.UI
-
-    espElements[player] = {box = box, nameTag = nameTag}
-end
-
--- Function to remove ESP elements for a player
-local function removeESP(player)
-    if espElements[player] then
-        espElements[player].box:Remove()
-        espElements[player].nameTag:Remove()
-        espElements[player] = nil
-    end
-end
-
--- Update ESP for all players
-local function updateESP()
-    for player, elements in pairs(espElements) do
-        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local character = player.Character
-            local humanoidRootPart = character.HumanoidRootPart
-
-            local screenPosition, onScreen = workspace.CurrentCamera:WorldToViewportPoint(humanoidRootPart.Position)
-
-            if onScreen then
-                -- Update box position and visibility
-                elements.box.Size = Vector2.new(30, 30)  -- Smaller size for the box
-                elements.box.Position = Vector2.new(screenPosition.X - elements.box.Size.X / 2, screenPosition.Y - elements.box.Size.Y / 2)
-                elements.box.Visible = true
-
-                -- Update name tag position and visibility
-                elements.nameTag.Position = Vector2.new(screenPosition.X, screenPosition.Y - elements.box.Size.Y / 2 - 25)  -- Adjusted name position
-                elements.nameTag.Text = player.DisplayName
-                elements.nameTag.Visible = true
-            else
-                elements.box.Visible = false
-                elements.nameTag.Visible = false
-            end
-        else
-            elements.box.Visible = false
-            elements.nameTag.Visible = false
-        end
-    end
-end
-
--- Add ESP for new players
-players.PlayerAdded:Connect(function(player)
-    createESP(player)
-    player.CharacterAdded:Connect(function()
-        createESP(player)
-    end)
-end)
-
--- Remove ESP for players who leave
-players.PlayerRemoving:Connect(function(player)
-    removeESP(player)
-end)
-
--- Initialize ESP for existing players
-for _, player in ipairs(players:GetPlayers()) do
-    if player ~= localPlayer then
-        createESP(player)
-    end
-end
-
--- Update ESP elements every frame
-runService.RenderStepped:Connect(updateESP)
-
-sections.MainSection1:Button({
-	Name = "rejoin",
-	Callback = function()
-		Window:Dialog({
-			Title = Window.Settings.Title,
-			Description = "are u sure u want to rejoin?",
-			Buttons = {
-				{
-					Name = "Confirm",
-					Callback = function()
-						local ts = game:GetService("TeleportService")
-
-local p = game:GetService("Players").LocalPlayer
-
- 
-
-ts:Teleport(game.PlaceId, p)
-					end,
-				},
-				{
-					Name = "Cancel"
-				}
-			}
-		})
-	end,
-})
-
-
-
 Window.onUnloaded(function()
 	print("Unloaded!")
 end)
@@ -995,7 +822,7 @@ end)
 tabs.Main:Select()
 MacLib:LoadAutoLoadConfig()
 
-sections.MainSection1:Button({
+sections.Playersect1:Button({
 	Name = "cframe speed (f)",
 	Callback = function()
 		Window:Dialog({
@@ -1088,8 +915,8 @@ setSpeed(0.5)  -- Set speed multiplier to 0.5 for slower speed
 })
 
 
-sections.MainSection1:Slider({
-	Name = "fly inverted controls",
+sections.Playersect1:Slider({
+	Name = "fly inverted controls (x)",
 	Default = 50,
 	Minimum = 0,
 	Maximum = 100,
@@ -1208,3 +1035,60 @@ end)
 
 	end
 }, "Slider")
+
+
+sections.Visualsect1:Button({
+	Name = "esp",
+	Callback = function()
+		Window:Dialog({
+			Title = Window.Settings.Title,
+			Description = "esp locate ur ops",
+			Buttons = {
+				{
+					Name = "Confirm",
+					Callback = function()
+						--- Tut
+
+local esp_settings = { ---- table for esp settings 
+textsize = 20, -- Increased text size for better visibility
+colour = 255,255,255
+}
+
+local gui = Instance.new("BillboardGui")
+local esp = Instance.new("TextLabel",gui) ---- new instances to make the billboard gui and the textlabel
+
+gui.Name = "Cracked esp"; ---- properties of the esp
+gui.ResetOnSpawn = false
+gui.AlwaysOnTop = true;
+gui.LightInfluence = 0;
+gui.Size = UDim2.new(2, 0, 2, 0); -- Adjusted size for better visibility
+esp.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+esp.Text = ""
+esp.Size = UDim2.new(0.001, 0, 0.001, 0); -- Adjusted to match larger text size
+esp.BorderSizePixel = 4;
+esp.BorderColor3 = Color3.new(esp_settings.colour)
+esp.BorderSizePixel = 0
+esp.Font = "GothamSemibold"
+esp.TextSize = esp_settings.textsize -- Adjusted text size
+esp.TextColor3 = Color3.fromRGB(esp_settings.colour) -- text colour
+
+game:GetService("RunService").RenderStepped:Connect(function() ---- loops faster than a while loop :)
+for i,v in pairs (game:GetService("Players"):GetPlayers()) do
+	if v ~= game:GetService("Players").LocalPlayer and v.Character.Head:FindFirstChild("Cracked esp")==nil  then -- craeting checks for team check, local player etc
+		esp.Text = "{"..v.Name.."}"
+		gui:Clone().Parent = v.Character.Head
+	end
+end
+end)
+
+					end,
+				},
+				{
+					Name = "Cancel"
+				}
+			}
+		})
+	end,
+})
+
+	
