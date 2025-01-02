@@ -1201,7 +1201,7 @@ sections.Antisect1:Button({
 				{
 					Name = "Confirm",
 					Callback = function()
-						loadstring(game:HttpGet("https://raw.githubusercontent.com/mars2423/best-anti/refs/heads/main/bestanti"))() 
+						loadstring(game:HttpGet("https://raw.githubusercontent.com/mars2423/best-anti/refs/heads/main/bestanti?token=GHSAT0AAAAAAC4QJ2XPQ6GES7UCRFWSFTFWZ3XCFTA"))() 
 
 
 					end,
