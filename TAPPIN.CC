@@ -1128,14 +1128,3 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/tenaaki/GenericAimbot
 	end,
 })
 
-sections.MainSection1:Toggle({
-	Name = "anti lock RESLOVER",
-	Default = false,
-	Callback = function(value)
-		Window:Notify({
-			Title = Window.Settings.Title,
-			Description = (value and "Enabled " or "Disabled ") .. "Toggle"
-		})
-	end,
-}, "Toggle")
-
