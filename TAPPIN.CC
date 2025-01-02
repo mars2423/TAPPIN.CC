@@ -1128,3 +1128,24 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/tenaaki/GenericAimbot
 	end,
 })
 
+sections.Main2:Button({
+	Name = "Reslover",
+	Callback = function()
+		Window:Dialog({
+			Title = Window.Settings.Title,
+			Description = "op as HELL🤓",
+			Buttons = {
+				{
+					Name = "Confirm",
+					Callback = function()
+						loadstring(game:HttpGet("https://raw.githubusercontent.com/mars2423/reslover/refs/heads/main/RESLOVER?token=GHSAT0AAAAAAC4QJ2XOQV52EJ6ZPDQ7CM6IZ3W5YYA"))()
+
+					end,
+				},
+				{
+					Name = "Cancel"
+				}
+			}
+		})
+	end,
+})
