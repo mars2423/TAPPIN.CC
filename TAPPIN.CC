@@ -1201,7 +1201,17 @@ sections.Antisect1:Button({
 				{
 					Name = "Confirm",
 					Callback = function()
-						loadstring(game:HttpGet("https://raw.githubusercontent.com/mars2423/best-anti/refs/heads/main/bestanti?token=GHSAT0AAAAAAC4QJ2XPQ6GES7UCRFWSFTFWZ3XCFTA"))() 
+						getgenv().Sky = true --disable or enable the antilock
+getgenv().SkyAmount = 90 --how far it should be
+ 
+game:GetService("RunService").heartbeat:Connect(function()
+    if getgenv().Sky ~= false then 
+    local vel = game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity
+    game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,      getgenv().SkyAmount,0) 
+    game:GetService("RunService").RenderStepped:Wait()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity = vel
+    end 
+end)
 
 
 					end,
