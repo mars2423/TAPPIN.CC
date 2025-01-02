@@ -58,7 +58,10 @@ local tabs = {
 	Main = tabGroups.TabGroup1:Tab({ Name = "silent aim", Image = "rbxassetid://18821914323" }),
 	Main2 = tabGroups.TabGroup1:Tab({ Name = "camlock", Image = "rbxassetid://10709789686" }),
 	Visual = tabGroups.TabGroup1:Tab({ Name = "visual", Image = "rbxassetid://10723346871" }),
+	Anti = tabGroups.TabGroup1:Tab({ Name = "anti aim lock", Image = "rbxassetid://10709752996" }),
 	Player = tabGroups.TabGroup1:Tab({ Name = "player", Image = "rbxassetid://10747373426" }),
+
+	
 }
 
 local sections = {
@@ -66,10 +69,15 @@ local sections = {
 	Main2 = tabs.Main2:Section({ Side = "Left" }),
 	Playersect1 = tabs.Player:Section({ Side = "Left" }),
 	Visualsect1 = tabs.Visual:Section({ Side = "Left" }),
+	Antisect1 = tabs.Anti:Section({ Side = "Left" }),
 }
 
 sections.MainSection1:Header({
 	Name = "silent aim"
+})
+
+sections.Antisect1:Header({
+	Name = "anti lock"
 })
 
 sections.Main2:Header({
@@ -822,220 +830,6 @@ end)
 tabs.Main:Select()
 MacLib:LoadAutoLoadConfig()
 
-sections.Playersect1:Button({
-	Name = "cframe speed (f)",
-	Callback = function()
-		Window:Dialog({
-			Title = Window.Settings.Title,
-			Description = "op asf",
-			Buttons = {
-				{
-					Name = "Confirm",
-					Callback = function()
-						local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-
--- Initialize variables
-local lastPosition = nil
-local lastTime = nil
-local isSpeedEnabled = false
-local Multiplier = 0.5  -- Lower value for slower speed (e.g., 0.5)
-
--- Function to calculate and apply CFrame speed
-local function calculateCFrameSpeed()
-    local character = Players.LocalPlayer.Character
-    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-    
-    lastPosition = character.HumanoidRootPart.Position
-    lastTime = tick()
-
-    -- Update speed every frame
-    RunService.Heartbeat:Connect(function()
-        if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-        local currentPosition = character.HumanoidRootPart.Position
-        local currentTime = tick()
-        
-        -- Calculate the distance traveled
-        local distance = (currentPosition - lastPosition).Magnitude
-        local timeDelta = currentTime - lastTime
-        
-        -- Calculate the speed (distance / time)
-        local speed = distance / timeDelta
-
-        -- Print the calculated speed in studs per second
-        print("CFrame Speed: " .. speed .. " studs per second")
-        
-        -- Update the last known position and time for the next frame
-        lastPosition = currentPosition
-        lastTime = currentTime
-
-        -- Apply speed to the character's movement (based on multiplier)
-        if isSpeedEnabled then
-            character.HumanoidRootPart.CFrame = character.HumanoidRootPart.CFrame + character.Humanoid.MoveDirection * Multiplier
-        end
-    end)
-end
-
--- Listen for key input (F key)
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    
-    if input.KeyCode == Enum.KeyCode.F then
-        -- Toggle speed on/off
-        isSpeedEnabled = not isSpeedEnabled
-        if isSpeedEnabled then
-            -- Start calculating CFrame speed
-            print("Speed enabled! Multiplier set to: " .. Multiplier)
-            calculateCFrameSpeed()
-        else
-            -- Stop the speed when 'F' is released
-            print("Speed disabled!")
-        end
-    end
-end)
-
--- Function to set the speed multiplier manually
-function setSpeed(value)
-    Multiplier = value
-    print("Speed multiplier set to: " .. Multiplier)
-end
-
--- Example usage: Change the speed multiplier directly (You can call this function anywhere in the script)
-setSpeed(0.5)  -- Set speed multiplier to 0.5 for slower speed
-
-					end,
-				},
-				{
-					Name = "Cancel"
-				}
-			}
-		})
-	end,
-})
-
-
-sections.Playersect1:Slider({
-	Name = "fly inverted controls (x)",
-	Default = 50,
-	Minimum = 0,
-	Maximum = 100,
-	DisplayMethod = "speed",
-	Precision = 0,
-	Callback = function(Value)
-		-- Fly Script - Press X to toggle fly, adjust speed with "[" and "]"
-
-local player = game.Players.LocalPlayer
-local mouse = player:GetMouse()
-
-if workspace:FindFirstChild("FlyCore") then
-    workspace.FlyCore:Destroy()
-end
-
--- Create a core part for flying
-local FlyCore = Instance.new("Part")
-FlyCore.Name = "FlyCore"
-FlyCore.Size = Vector3.new(0.05, 0.05, 0.05)
-FlyCore.Parent = workspace
-FlyCore.Anchored = false
-FlyCore.CanCollide = false
-
-local weld = Instance.new("Weld", FlyCore)
-weld.Part0 = FlyCore
-weld.Part1 = player.Character:WaitForChild("LowerTorso")
-weld.C0 = CFrame.new(0, 0, 0)
-
-local isFlying = false
-local speed = (Value)
-local maxSpeed = (Value)
-local minSpeed = (Value)
-local keys = { W = false, A = false, S = false, D = false }
-
-local function toggleFly(state)
-    local character = player.Character
-    if not character then return end
-
-    local bodyGyro = FlyCore:FindFirstChild("BodyGyro") or Instance.new("BodyGyro", FlyCore)
-    local bodyPosition = FlyCore:FindFirstChild("BodyPosition") or Instance.new("BodyPosition", FlyCore)
-
-    bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-    bodyGyro.P = 1e5
-    bodyPosition.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-    bodyPosition.P = 1e5
-
-    if state then
-        isFlying = true
-        character.Humanoid.PlatformStand = true
-
-        -- Fly loop
-        game:GetService("RunService").Heartbeat:Connect(function()
-            if not isFlying then return end
-
-            local moveDir = Vector3.new(
-                (keys.D and 1 or  0) - (keys.A and 1 or 0),
-                0,
-                (keys.W and -1 or 0) + (keys.S and 1 or 0)
-            )
-
-            local camera = workspace.CurrentCamera
-            local moveVector = (camera.CFrame.RightVector * moveDir.X + camera.CFrame.LookVector * moveDir.Z).Unit
-
-            if moveVector.Magnitude > 0 then
-                bodyPosition.Position = FlyCore.Position + moveVector * speed
-            else
-                bodyPosition.Position = FlyCore.Position
-            end
-
-            bodyGyro.CFrame = camera.CFrame
-        end)
-    else
-        isFlying = false
-        bodyGyro:Destroy()
-        bodyPosition:Destroy()
-        character.Humanoid.PlatformStand = false
-    end
-end
-
--- Keybinds
-mouse.KeyDown:Connect(function(key)
-    key = key:upper()
-
-    if key == "W" then
-        keys.W = true
-    elseif key == "A" then
-        keys.A = true
-    elseif key == "S" then
-        keys.S = true
-    elseif key == "D" then
-        keys.D = true
-    elseif key == "X" then
-        toggleFly(not isFlying)
-    elseif key == "[" then
-        speed = math.max(speed - 1, minSpeed)
-        print("Speed decreased to:", speed)
-    elseif key == "]" then
-        speed = math.min(speed + 1, maxSpeed)
-        print("Speed increased to:", speed)
-    end
-end)
-
-mouse.KeyUp:Connect(function(key)
-    key = key:upper()
-
-    if key == "W" then
-        keys.W = false
-    elseif key == "A" then
-        keys.A = false
-    elseif key == "S" then
-        keys.S = false
-    elseif key == "D" then
-        keys.D = false
-    end
-end)
-
-	end
-}, "Slider")
-
 
 sections.Visualsect1:Button({
 	Name = "esp",
@@ -1128,7 +922,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/tenaaki/GenericAimbot
 	end,
 })
 
-sections.Main2:Button({
+sections.Antisect1:Button({
 	Name = "Reslover",
 	Callback = function()
 		Window:Dialog({
@@ -1138,7 +932,7 @@ sections.Main2:Button({
 				{
 					Name = "Confirm",
 					Callback = function()
-						loadstring(game:HttpGet("https://raw.githubusercontent.com/mars2423/reslover/refs/heads/main/RESLOVER?token=GHSAT0AAAAAAC4QJ2XOQV52EJ6ZPDQ7CM6IZ3W5YYA"))()
+						loadstring(game:HttpGet("https://raw.githubusercontent.com/mars2423/reslover/refs/heads/main/RESLOVER"))()
 
 					end,
 				},
@@ -1149,3 +943,323 @@ sections.Main2:Button({
 		})
 	end,
 })
+
+
+sections.Playersect1:Button({
+	Name = "cframe speed (f)",
+	Callback = function()
+		Window:Dialog({
+			Title = Window.Settings.Title,
+			Description = "speedy",
+			Buttons = {
+				{
+					Name = "Confirm",
+					Callback = function()
+						local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+-- Initialize variables
+local lastPosition = nil
+local lastTime = nil
+local isSpeedEnabled = false
+local Multiplier = 0  -- Lower value for slower speed (e.g., 0.5)
+
+-- Function to calculate and apply CFrame speed
+local function calculateCFrameSpeed()
+    local character = Players.LocalPlayer.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    
+    lastPosition = character.HumanoidRootPart.Position
+    lastTime = tick()
+
+    -- Update speed every frame
+    RunService.Heartbeat:Connect(function()
+        if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+        local currentPosition = character.HumanoidRootPart.Position
+        local currentTime = tick()
+        
+        -- Calculate the distance traveled
+        local distance = (currentPosition - lastPosition).Magnitude
+        local timeDelta = currentTime - lastTime
+        
+        -- Calculate the speed (distance / time)
+        local speed = distance / timeDelta
+
+        -- Print the calculated speed in studs per second
+        print("CFrame Speed: " .. speed .. " studs per second")
+        
+        -- Update the last known position and time for the next frame
+        lastPosition = currentPosition
+        lastTime = currentTime
+
+        -- Apply speed to the character's movement (based on multiplier)
+        if isSpeedEnabled then
+            character.HumanoidRootPart.CFrame = character.HumanoidRootPart.CFrame + character.Humanoid.MoveDirection * Multiplier
+        end
+    end)
+end
+
+-- Listen for key input (F key)
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode.F then
+        -- Toggle speed on/off
+        isSpeedEnabled = not isSpeedEnabled
+        if isSpeedEnabled then
+            -- Start calculating CFrame speed
+            print("Speed enabled! Multiplier set to: " .. Multiplier)
+            calculateCFrameSpeed()
+        else
+            -- Stop the speed when 'F' is released
+            print("Speed disabled!")
+        end
+    end
+end)
+
+-- Function to set the speed multiplier manually
+function setSpeed(value)
+    Multiplier = value
+    print("Speed multiplier set to: " .. Multiplier)
+end
+
+-- Example usage: Change the speed multiplier directly (You can call this function anywhere in the script)
+setSpeed(0.5)  -- Set speed multiplier to 0.5 for slower speed
+
+					end,
+				},
+				{
+					Name = "Cancel"
+				}
+			}
+		})
+	end,
+})
+
+sections.Playersect1:Button({
+	Name = "no clip (b) dont leave on",
+	Callback = function()
+		Window:Dialog({
+			Title = Window.Settings.Title,
+			Description = "no clip",
+			Buttons = {
+				{
+					Name = "Confirm",
+					Callback = function()
+						loadstring(game:HttpGet("https://pastebin.com/raw/XgxXzw5s"))()
+
+					end,
+				},
+				{
+					Name = "Cancel"
+				}
+			}
+		})
+	end,
+})
+
+sections.Playersect1:Button({
+	Name = "fly (x)",
+	Callback = function()
+		Window:Dialog({
+			Title = Window.Settings.Title,
+			Description = "decent fly",
+			Buttons = {
+				{
+					Name = "Confirm",
+					Callback = function()
+						-- Press X to fly
+
+local plr = game.Players.LocalPlayer
+local mouse = plr:GetMouse()
+
+localplayer = plr
+
+if workspace:FindFirstChild("Core") then
+	workspace.Core:Destroy()
+end
+
+local Core = Instance.new("Part")
+Core.Name = "Core"
+Core.Size = Vector3.new(0.05, 0.05, 0.05)
+
+spawn(function()
+	Core.Parent = workspace
+	local Weld = Instance.new("Weld", Core)
+	Weld.Part0 = Core
+	Weld.Part1 = localplayer.Character.LowerTorso
+	Weld.C0 = CFrame.new(0, 0, 0)
+end)
+
+workspace:WaitForChild("Core")
+
+local torso = workspace.Core
+flying = true
+local speed=15
+local keys={a=false,d=false,w=false,s=false}
+local e1
+local e2
+local function start()
+	local pos = Instance.new("BodyPosition",torso)
+	local gyro = Instance.new("BodyGyro",torso)
+	pos.Name="EPIXPOS"
+	pos.maxForce = Vector3.new(math.huge, math.huge, math.huge)
+	pos.position = torso.Position
+	gyro.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+	gyro.cframe = torso.CFrame
+	repeat
+		wait()
+		localplayer.Character.Humanoid.PlatformStand=true
+		local new=gyro.cframe - gyro.cframe.p + pos.position
+		if not keys.w and not keys.s and not keys.a and not keys.d then
+			speed=5
+		end
+		if keys.w then
+			new = new + workspace.CurrentCamera.CoordinateFrame.lookVector * speed
+			speed=speed+0
+		end
+		if keys.s then
+			new = new - workspace.CurrentCamera.CoordinateFrame.lookVector * speed
+			speed=speed+0
+		end
+		if keys.d then
+			new = new * CFrame.new(speed,0,0)
+			speed=speed+0
+		end
+		if keys.a then
+			new = new * CFrame.new(-speed,0,0)
+			speed=speed+0
+		end
+		if speed>10 then
+			speed=5
+		end
+		pos.position=new.p
+		if keys.w then
+			gyro.cframe = workspace.CurrentCamera.CoordinateFrame*CFrame.Angles(-math.rad(speed*0),0,0)
+		elseif keys.s then
+			gyro.cframe = workspace.CurrentCamera.CoordinateFrame*CFrame.Angles(math.rad(speed*0),0,0)
+		else
+			gyro.cframe = workspace.CurrentCamera.CoordinateFrame
+		end
+	until flying == false
+	if gyro then gyro:Destroy() end
+	if pos then pos:Destroy() end
+	flying=false
+	localplayer.Character.Humanoid.PlatformStand=false
+	speed=10
+end
+e1=mouse.KeyDown:connect(function(key)
+	if not torso or not torso.Parent then flying=false e1:disconnect() e2:disconnect() return end
+	if key=="w" then
+		keys.w=true
+	elseif key=="s" then
+		keys.s=true
+	elseif key=="a" then
+		keys.a=true
+	elseif key=="d" then
+		keys.d=true
+	elseif key=="x" then
+		if flying==true then
+			flying=false
+		else
+			flying=true
+			start()
+		end
+	end
+end)
+e2=mouse.KeyUp:connect(function(key)
+	if key=="w" then
+		keys.w=false
+	elseif key=="s" then
+		keys.s=false
+	elseif key=="a" then
+		keys.a=false
+	elseif key=="d" then
+		keys.d=false
+	end
+end)
+start()
+
+					end,
+				},
+				{
+					Name = "Cancel"
+				}
+			}
+		})
+	end,
+})
+
+sections.Antisect1:Button({
+	Name = "antilock (sky)",
+	Callback = function()
+		Window:Dialog({
+			Title = Window.Settings.Title,
+			Description = "best one ever",
+			Buttons = {
+				{
+					Name = "Confirm",
+					Callback = function()
+						loadstring(game:HttpGet("https://raw.githubusercontent.com/mars2423/best-anti/refs/heads/main/bestanti"))() 
+
+
+					end,
+				},
+				{
+					Name = "Cancel"
+				}
+			}
+		})
+	end,
+})
+
+sections.Antisect1:Button({
+	Name = "anti lock (cannot jump) (v)",
+	Callback = function()
+		Window:Dialog({
+			Title = Window.Settings.Title,
+			Description = "op",
+			Buttons = {
+				{
+					Name = "Confirm",
+					Callback = function()
+						local Toggled = false
+local KeyCode = 'v'
+
+
+function AA()
+    local oldVelocity = game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity
+    game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(oldVelocity.X, -70, oldVelocity.Z)
+    game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(oldVelocity.X, oldVelocity.Y, oldVelocity.Z)
+    game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(oldVelocity.X, -70, oldVelocity.Z)
+    game.Players.LocalPlayer.Character.Humanoid.HipHeight = 4.14
+end
+
+game:GetService('UserInputService').InputBegan:Connect(function(Key)
+    if Key.KeyCode == Enum.KeyCode[KeyCode:upper()] and not game:GetService('UserInputService'):GetFocusedTextBox() then
+        if Toggled then
+            Toggled = false
+            game.Players.LocalPlayer.Character.Humanoid.HipHeight = 1.85
+
+        elseif not Toggled then
+            Toggled = true
+
+            while Toggled do
+                AA()
+                task.wait()
+            end
+        end
+    end
+end)
+					end,
+				},
+				{
+					Name = "Cancel"
+				}
+			}
+		})
+	end,
+})
+
+
